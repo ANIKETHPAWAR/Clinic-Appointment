@@ -8,4 +8,5 @@ coverage
 .git
 .gitignore
 README.md
-frontend/ 
+frontend/
+nixpacks.toml 

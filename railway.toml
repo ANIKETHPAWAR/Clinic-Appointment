@@ -1,12 +1,11 @@
 [build]
-builder = "nixpacks"
+builder = "dockerfile"
 
 [deploy]
-startCommand = "npm run build && NODE_ENV=production npm start"
 healthcheckPath = "/api"
-healthcheckTimeout = 300
+healthcheckTimeout = 60
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 10
+restartPolicyMaxRetries = 3
 
 [[services]]
 name = "clinicms-backend" 
