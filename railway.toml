@@ -3,9 +3,9 @@ builder = "dockerfile"
 
 [deploy]
 healthcheckPath = "/api"
-healthcheckTimeout = 60
+healthcheckTimeout = 120
 restartPolicyType = "on_failure"
-restartPolicyMaxRetries = 3
+restartPolicyMaxRetries = 5
 
 [[services]]
 name = "clinicms-backend" 

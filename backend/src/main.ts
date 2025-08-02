@@ -32,6 +32,8 @@ async function bootstrap() {
     }),
   );
 
+
+
   // Global prefix for all routes
   app.setGlobalPrefix('api');
 
