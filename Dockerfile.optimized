@@ -1,0 +1,44 @@
+# Multi-stage build for optimized production image
+FROM node:18-alpine AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY backend/package*.json ./backend/
+
+# Install all dependencies (including dev dependencies)
+WORKDIR /app/backend
+RUN npm ci
+
+# Copy source code
+COPY backend/ ./backend/
+
+# Build the application
+RUN npm run build
+
+# Production stage
+FROM node:18-alpine AS production
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY backend/package*.json ./backend/
+
+# Install only production dependencies
+WORKDIR /app/backend
+RUN npm ci --only=production
+
+# Copy built application from builder stage
+COPY --from=builder /app/backend/dist ./dist
+
+# Expose port
+EXPOSE 3001
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3001
+
+# Start the application
+CMD ["npm", "start"] 
