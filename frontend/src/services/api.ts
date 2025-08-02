@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+import { config } from '../config/environment';
+
+const API_BASE_URL = config.API_URL;
 
 interface ApiResponse<T> {
   data?: T;

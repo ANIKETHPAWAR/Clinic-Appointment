@@ -1,22 +1,36 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
 
-export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
-  type: 'mysql',
-  host: configService.get('DB_HOST', 'localhost'),
-  port: configService.get('DB_PORT', 3306),
-  username: configService.get('DB_USERNAME', 'root'),
-  password: configService.get('DB_PASSWORD', ''),
-  database: configService.get('DB_DATABASE', 'clinic_management'),
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  synchronize: configService.get('NODE_ENV') !== 'production',
-  logging: configService.get('NODE_ENV') === 'development',
-  dropSchema: false,
-  migrations: ['dist/migrations/*.js'],
-  migrationsRun: false,
-  charset: 'utf8mb4',
-  timezone: '+00:00',
-  extra: {
-    charset: 'utf8mb4_unicode_ci',
-  },
-}); 
+export const getDatabaseConfig = (): TypeOrmModuleOptions => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  if (isProduction) {
+    // Production: Use PlanetScale or similar cloud database
+    return {
+      type: 'mysql',
+      host: process.env.DB_HOST || 'aws.connect.psdb.cloud',
+      port: parseInt(process.env.DB_PORT) || 3306,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+      synchronize: false, // Disable in production
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      logging: false,
+    };
+  } else {
+    // Development: Use local MySQL
+    return {
+      type: 'mysql',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT) || 3306,
+      username: process.env.DB_USERNAME || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_DATABASE || 'clinicms',
+      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+      synchronize: true,
+      logging: true,
+    };
+  }
+}; 

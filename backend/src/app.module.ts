@@ -19,6 +19,9 @@ import { QueueModule } from './queue/queue.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SeedModule } from './seed/seed.module';
 
+// Import database configuration
+import { getDatabaseConfig } from './config/database.config';
+
 @Module({
   imports: [
     // Configuration module for environment variables
@@ -30,29 +33,7 @@ import { SeedModule } from './seed/seed.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
-        const config = {
-          type: 'mysql' as const,
-          host: configService.get('DB_HOST', 'localhost'),
-          port: configService.get('DB_PORT', 3306),
-          username: configService.get('DB_USERNAME', 'root'),
-          password: configService.get('DB_PASSWORD', ''),
-          database: configService.get('DB_DATABASE', 'clinic_management'),
-          entities: [__dirname + '/**/*.entity{.ts,.js}'],
-          synchronize: configService.get('NODE_ENV') !== 'production',
-          logging: configService.get('NODE_ENV') === 'development',
-          dropSchema: false,
-          migrations: ['dist/migrations/*.js'],
-          migrationsRun: false,
-          charset: 'utf8mb4',
-          timezone: '+00:00',
-          extra: {
-            charset: 'utf8mb4_unicode_ci',
-          },
-        };
-        
-
-        
-        return config;
+        return getDatabaseConfig();
       },
       inject: [ConfigService],
     }),
