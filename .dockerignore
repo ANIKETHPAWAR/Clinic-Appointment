@@ -37,6 +37,7 @@ Thumbs.db
 # Railway files
 railway.toml
 .railwayignore
+Dockerfile.optimized
 
 # Test files
 test/

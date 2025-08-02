@@ -1,6 +1,5 @@
 [build]
 builder = "dockerfile"
-dockerfilePath = "Dockerfile.optimized"
 
 [deploy]
 healthcheckPath = "/api"

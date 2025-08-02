@@ -12,7 +12,7 @@ WORKDIR /app/backend
 RUN npm ci
 
 # Copy only backend source code
-COPY backend/ ./backend/
+COPY backend/ ./
 
 # Build the application
 RUN npm run build

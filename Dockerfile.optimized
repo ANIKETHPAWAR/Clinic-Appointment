@@ -11,10 +11,11 @@ COPY backend/package*.json ./backend/
 WORKDIR /app/backend
 RUN npm ci
 
-# Copy source code
-COPY backend/ ./backend/
+# Copy source code and config files
+COPY backend/ ./
 
-# Build the application
+# Build the application (ensure we're in the backend directory)
+WORKDIR /app/backend
 RUN npm run build
 
 # Production stage
