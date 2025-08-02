@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Clinic Management System",
   "scripts": {
-    "build": "cd backend && npx nest build",
+    "build": "cd backend && npx tsc -p tsconfig.json",
     "start": "cd backend && NODE_ENV=production npm start",
     "install": "cd backend && npm install"
   },

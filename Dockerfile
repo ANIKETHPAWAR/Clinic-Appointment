@@ -14,8 +14,8 @@ RUN npm install
 # Copy only backend source code
 COPY backend/ ./
 
-# Build the application
-RUN npm run build
+# Build the application using TypeScript compiler directly
+RUN npx tsc -p tsconfig.json
 
 # Remove dev dependencies to reduce image size
 RUN npm prune --production

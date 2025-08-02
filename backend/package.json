@@ -4,7 +4,7 @@
   "description": "Backend API for Front Desk System - Clinic Management",
   "main": "dist/main.js",
   "scripts": {
-    "build": "npx nest build",
+    "build": "npx tsc -p tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main",
     "start:dev": "nest start --watch",
