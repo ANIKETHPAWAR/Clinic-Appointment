@@ -1,17 +1,17 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 export const getDatabaseConfig = (): TypeOrmModuleOptions => {
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT === 'production';
   
   if (isProduction) {
-    // Production: Use PlanetScale or similar cloud database
+    // Production: Use Railway MySQL database
     return {
       type: 'mysql',
-      host: process.env.DB_HOST || 'aws.connect.psdb.cloud',
-      port: parseInt(process.env.DB_PORT) || 3306,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
+      host: process.env.DB_HOST || 'ballast.proxy.rlwy.net',
+      port: parseInt(process.env.DB_PORT) || 50519,
+      username: process.env.DB_USERNAME || 'root',
+      password: process.env.DB_PASSWORD || 'huhSgzLfzxTFAeNHEIgrmDoewQaMOxBD',
+      database: process.env.DB_DATABASE || 'railway',
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
       synchronize: false, // Disable in production
       ssl: {

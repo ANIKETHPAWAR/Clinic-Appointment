@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "npm run build && npm start"
+startCommand = "npm run build && NODE_ENV=production npm start"
 healthcheckPath = "/api"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"

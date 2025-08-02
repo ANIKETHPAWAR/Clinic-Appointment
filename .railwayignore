@@ -7,4 +7,5 @@ coverage
 *.log
 .git
 .gitignore
-README.md 
+README.md
+frontend/ 

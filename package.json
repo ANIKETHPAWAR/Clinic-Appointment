@@ -1,6 +1,14 @@
 {
-  "dependencies": {
-    "dotenv": "^17.2.1",
-    "mysql2": "^3.14.3"
-  }
+  "name": "clinicms",
+  "version": "1.0.0",
+  "description": "Clinic Management System",
+  "scripts": {
+    "build": "cd backend && npm run build",
+    "start": "cd backend && NODE_ENV=production npm start",
+    "install": "cd backend && npm install"
+  },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
 }
