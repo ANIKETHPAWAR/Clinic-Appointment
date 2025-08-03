@@ -51,6 +51,12 @@ class ApiService {
         return { data: responseData.stats };
       } else if (responseData.token) {
         return { data: responseData };
+      } else if (responseData.message && responseData.doctor) {
+        return { data: responseData.doctor };
+      } else if (responseData.message && responseData.patient) {
+        return { data: responseData.patient };
+      } else if (responseData.message && responseData.appointment) {
+        return { data: responseData.appointment };
       } else {
         return { data: responseData };
       }
@@ -137,11 +143,12 @@ class ApiService {
   }
 
   async createDoctor(doctorData: {
-    name: string;
+    firstName: string;
+    lastName: string;
     specialization: string;
     gender: string;
     location: string;
-    available: boolean;
+    isActive: boolean;
     email: string;
     phone: string;
   }) {

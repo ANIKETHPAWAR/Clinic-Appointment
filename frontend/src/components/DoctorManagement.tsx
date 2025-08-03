@@ -3,11 +3,12 @@ import { apiService } from '../services/api'
 
 interface Doctor {
   id: number
-  name: string
+  firstName: string
+  lastName: string
   specialization: string
   gender: 'male' | 'female' | 'other'
   location: string
-  available: boolean
+  isActive: boolean
   email: string
   phone: string
 }
@@ -17,11 +18,12 @@ const DoctorManagement = () => {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
   const [newDoctor, setNewDoctor] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     specialization: '',
     gender: 'male' as 'male' | 'female' | 'other',
     location: '',
-    available: true,
+    isActive: true,
     email: '',
     phone: ''
   })
@@ -44,7 +46,7 @@ const DoctorManagement = () => {
   }, [])
 
   const addDoctor = async () => {
-    if (!newDoctor.name || !newDoctor.specialization || !newDoctor.location) return
+    if (!newDoctor.firstName || !newDoctor.lastName || !newDoctor.specialization || !newDoctor.location) return
 
     try {
       const response = await apiService.createDoctor(newDoctor)
@@ -56,11 +58,12 @@ const DoctorManagement = () => {
       if (response.data) {
         setDoctors([...doctors, response.data])
         setNewDoctor({
-          name: '',
+          firstName: '',
+          lastName: '',
           specialization: '',
           gender: 'male',
           location: '',
-          available: true,
+          isActive: true,
           email: '',
           phone: ''
         })
@@ -72,7 +75,7 @@ const DoctorManagement = () => {
   }
 
   const updateDoctor = async () => {
-    if (!editingDoctor || !newDoctor.name || !newDoctor.specialization || !newDoctor.location) return
+    if (!editingDoctor || !newDoctor.firstName || !newDoctor.lastName || !newDoctor.specialization || !newDoctor.location) return
 
     try {
       const response = await apiService.updateDoctor(editingDoctor.id, newDoctor)
@@ -87,11 +90,12 @@ const DoctorManagement = () => {
         ))
         setEditingDoctor(null)
         setNewDoctor({
-          name: '',
+          firstName: '',
+          lastName: '',
           specialization: '',
           gender: 'male',
           location: '',
-          available: true,
+          isActive: true,
           email: '',
           phone: ''
         })
@@ -118,11 +122,12 @@ const DoctorManagement = () => {
   const editDoctor = (doctor: Doctor) => {
     setEditingDoctor(doctor)
     setNewDoctor({
-      name: doctor.name,
+      firstName: doctor.firstName,
+      lastName: doctor.lastName,
       specialization: doctor.specialization,
       gender: doctor.gender,
       location: doctor.location,
-      available: doctor.available,
+      isActive: doctor.isActive,
       email: doctor.email,
       phone: doctor.phone
     })
@@ -131,11 +136,12 @@ const DoctorManagement = () => {
   const cancelEdit = () => {
     setEditingDoctor(null)
     setNewDoctor({
-      name: '',
+      firstName: '',
+      lastName: '',
       specialization: '',
       gender: 'male',
       location: '',
-      available: true,
+      isActive: true,
       email: '',
       phone: ''
     })
@@ -174,16 +180,29 @@ const DoctorManagement = () => {
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Doctor Name
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                First Name
               </label>
               <input
                 type="text"
-                id="name"
-                value={newDoctor.name}
-                onChange={(e) => setNewDoctor({ ...newDoctor, name: e.target.value })}
+                id="firstName"
+                value={newDoctor.firstName}
+                onChange={(e) => setNewDoctor({ ...newDoctor, firstName: e.target.value })}
                 className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Enter doctor name"
+                placeholder="Enter first name"
+              />
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                Last Name
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                value={newDoctor.lastName}
+                onChange={(e) => setNewDoctor({ ...newDoctor, lastName: e.target.value })}
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Enter last name"
               />
             </div>
             <div>
@@ -258,14 +277,14 @@ const DoctorManagement = () => {
             </div>
             <div className="flex items-center">
               <input
-                id="available"
+                id="isActive"
                 type="checkbox"
-                checked={newDoctor.available}
-                onChange={(e) => setNewDoctor({ ...newDoctor, available: e.target.checked })}
+                checked={newDoctor.isActive}
+                onChange={(e) => setNewDoctor({ ...newDoctor, isActive: e.target.checked })}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="available" className="ml-2 block text-sm text-gray-900">
-                Available
+              <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">
+                Active
               </label>
             </div>
             <div className="flex items-end space-x-2">
@@ -303,9 +322,9 @@ const DoctorManagement = () => {
                     </div>
                     <div className="ml-4">
                       <div className="flex items-center">
-                        <p className="text-sm font-medium text-gray-900">{doctor.name}</p>
-                        <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${doctor.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {doctor.available ? 'Available' : 'Unavailable'}
+                        <p className="text-sm font-medium text-gray-900">{doctor.firstName} {doctor.lastName}</p>
+                        <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${doctor.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {doctor.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </div>
                       <p className="text-sm text-gray-500">
