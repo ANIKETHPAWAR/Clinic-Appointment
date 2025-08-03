@@ -3,7 +3,7 @@ services:
     name: clinicms-backend
     env: node
     plan: free
-    buildCommand: cd backend && chmod +x build.sh && ./build.sh
+    buildCommand: cd backend && npm install && npm run build
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
