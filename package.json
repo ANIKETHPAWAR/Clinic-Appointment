@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Clinic Management System",
   "scripts": {
-    "build": "cd backend && npx tsc -p tsconfig.json",
-    "start": "cd backend && NODE_ENV=production npm start",
-    "install": "cd backend && npm install"
+    "build": "cd backend && npm run build",
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run start:dev"
   },
   "workspaces": [
     "backend",
