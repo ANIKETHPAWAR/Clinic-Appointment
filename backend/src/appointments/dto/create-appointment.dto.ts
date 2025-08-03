@@ -2,16 +2,16 @@ import { IsNotEmpty, IsNumber, IsEnum, IsOptional, IsString, IsDateString, IsNum
 import { AppointmentStatus, AppointmentType } from '../../entities/appointment.entity';
 
 export class CreateAppointmentDto {
-  @IsNotEmpty({ message: 'Patient ID is required' })
-  @IsNumber()
-  patientId: number;
+  @IsNotEmpty({ message: 'Patient name is required' })
+  @IsString()
+  patientName: string;
 
   @IsNotEmpty({ message: 'Doctor ID is required' })
   @IsNumber()
   doctorId: number;
 
-  @IsDateString()
   @IsNotEmpty({ message: 'Appointment date is required' })
+  @IsString()
   appointmentDate: string;
 
   @IsNotEmpty({ message: 'Appointment time is required' })

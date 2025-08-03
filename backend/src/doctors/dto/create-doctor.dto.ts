@@ -40,4 +40,7 @@ export class CreateDoctorDto {
   @IsArray()
   @IsString({ each: true })
   languages?: string[];
+
+  @IsOptional()
+  isActive?: boolean = true;
 } 

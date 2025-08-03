@@ -10,7 +10,9 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  ParseIntPipe
+  ParseIntPipe,
+  NotFoundException,
+  ConflictException
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -23,22 +25,75 @@ import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
 
 @Controller('appointments')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class AppointmentsController {
-  constructor(private readonly appointmentsService: AppointmentsService) {}
+  constructor(private readonly appointmentsService: AppointmentsService) {
+    console.log('🔧 AppointmentsController initialized');
+  }
 
-  @Post()
-  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Post('test')
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createAppointmentDto: CreateAppointmentDto) {
-    const appointment = await this.appointmentsService.create(createAppointmentDto);
+  async testCreate(@Body() createAppointmentDto: CreateAppointmentDto) {
+    console.log('🧪 TEST endpoint called');
+    console.log('🧪 Request body:', createAppointmentDto);
     return {
-      message: 'Appointment created successfully',
-      appointment,
+      message: 'Test endpoint working',
+      data: createAppointmentDto
     };
   }
 
+  @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Body() createAppointmentDto: CreateAppointmentDto) {
+    console.log('🚀 POST /appointments endpoint called');
+    try {
+      console.log('📝 Received appointment creation request:', createAppointmentDto);
+      console.log('📝 Request body type:', typeof createAppointmentDto);
+      console.log('📝 Request body keys:', Object.keys(createAppointmentDto));
+      console.log('📝 doctorId type:', typeof createAppointmentDto.doctorId);
+      console.log('📝 doctorId value:', createAppointmentDto.doctorId);
+      
+      // Validate and format the date if needed
+      if (createAppointmentDto.appointmentDate) {
+        // Check if it's already in YYYY-MM-DD format
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(createAppointmentDto.appointmentDate)) {
+          console.log('⚠️ Date format validation failed, attempting conversion...');
+          // Try to convert from DD-MM-YYYY to YYYY-MM-DD
+          const dateParts = createAppointmentDto.appointmentDate.split('-');
+          if (dateParts.length === 3) {
+            const [day, month, year] = dateParts;
+            createAppointmentDto.appointmentDate = `${year}-${month}-${day}`;
+            console.log(`📅 Backend date conversion: ${dateParts.join('-')} -> ${createAppointmentDto.appointmentDate}`);
+          }
+        }
+      }
+      
+      const appointment = await this.appointmentsService.create(createAppointmentDto);
+      return {
+        message: 'Appointment created successfully',
+        appointment,
+      };
+    } catch (error) {
+      console.error('❌ Error in appointment controller:', error);
+      if (error instanceof NotFoundException) {
+        throw error; // Re-throw NotFoundException as is
+      } else if (error instanceof ConflictException) {
+        throw error; // Re-throw ConflictException as is
+      } else {
+        console.error('❌ Unexpected error details:', {
+          message: error.message,
+          stack: error.stack,
+          code: error.code
+        });
+        throw new Error(`Failed to create appointment: ${error.message}`);
+      }
+    }
+  }
+
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   async findAll(@Query() queryDto: QueryAppointmentDto) {
     return this.appointmentsService.findAll(queryDto);

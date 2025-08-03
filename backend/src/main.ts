@@ -35,10 +35,39 @@ async function bootstrap() {
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true, // Remove properties that don't have decorators
-        forbidNonWhitelisted: true, // Throw error if non-whitelisted properties are present
+        forbidNonWhitelisted: false, // Temporarily disable strict validation
         transform: true, // Transform payloads to be objects typed according to their DTO classes
       }),
     );
+
+    // Global exception filter to catch all errors
+    app.useGlobalFilters(new (class {
+      catch(exception: any, host: any) {
+        const ctx = host.switchToHttp();
+        const response = ctx.getResponse();
+        const request = ctx.getRequest();
+        
+        console.error('🔥 Global Exception Filter caught error:', {
+          error: exception.message,
+          stack: exception.stack,
+          url: request.url,
+          method: request.method,
+          body: request.body,
+          headers: request.headers
+        });
+        
+        const status = exception.status || 500;
+        const message = exception.message || 'Internal server error';
+        
+        response.status(status).json({
+          statusCode: status,
+          message: message,
+          error: exception.error || 'Internal Server Error',
+          timestamp: new Date().toISOString(),
+          path: request.url
+        });
+      }
+    })());
     console.log('✅ Validation pipe configured');
 
     // Global prefix for all routes

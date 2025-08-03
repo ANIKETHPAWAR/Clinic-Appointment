@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, Not } from 'typeorm';
 
 import { Appointment, AppointmentStatus, AppointmentType } from '../entities/appointment.entity';
+import { Patient } from '../entities/patient.entity';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 import { QueryAppointmentDto } from './dto/query-appointment.dto';
@@ -12,15 +13,111 @@ export class AppointmentsService {
   constructor(
     @InjectRepository(Appointment)
     private appointmentRepository: Repository<Appointment>,
+    @InjectRepository(Patient)
+    private patientRepository: Repository<Patient>,
   ) {}
 
   async create(createAppointmentDto: CreateAppointmentDto): Promise<Appointment> {
-    const { doctorId, appointmentDate, appointmentTime } = createAppointmentDto;
+    const { patientName, doctorId, appointmentDate, appointmentTime } = createAppointmentDto;
+
+    console.log(`🔍 Looking for patient: "${patientName}"`);
+
+    // Find patient by name - improved logic
+    let patient = null;
+    
+    try {
+      // First, try to find by full name as firstName
+      patient = await this.patientRepository.findOne({
+        where: { firstName: patientName }
+      });
+      console.log(`🔍 Search 1 (firstName): ${patient ? 'Found' : 'Not found'}`);
+
+      // If not found, try to find by full name as lastName
+      if (!patient) {
+        patient = await this.patientRepository.findOne({
+          where: { lastName: patientName }
+        });
+        console.log(`🔍 Search 2 (lastName): ${patient ? 'Found' : 'Not found'}`);
+      }
+
+      // If not found, try to split the name and search
+      if (!patient) {
+        const nameParts = patientName.trim().split(' ');
+        console.log(`🔍 Name parts:`, nameParts);
+        if (nameParts.length >= 2) {
+          const firstName = nameParts[0];
+          const lastName = nameParts.slice(1).join(' ');
+          console.log(`🔍 Searching with firstName: "${firstName}", lastName: "${lastName}"`);
+          
+          patient = await this.patientRepository.findOne({
+            where: { firstName, lastName }
+          });
+          console.log(`🔍 Search 3 (split name): ${patient ? 'Found' : 'Not found'}`);
+        }
+      }
+
+      // If still not found, try case-insensitive search
+      if (!patient) {
+        console.log(`🔍 Performing case-insensitive search...`);
+        const patients = await this.patientRepository.find();
+        console.log(`🔍 Total patients in DB: ${patients.length}`);
+        console.log(`🔍 Available patients:`, patients.map(p => `${p.firstName} ${p.lastName}`));
+        
+        patient = patients.find(p => 
+          p.firstName.toLowerCase() === patientName.toLowerCase() ||
+          p.lastName.toLowerCase() === patientName.toLowerCase() ||
+          `${p.firstName} ${p.lastName}`.toLowerCase() === patientName.toLowerCase()
+        );
+        console.log(`🔍 Search 4 (case-insensitive): ${patient ? 'Found' : 'Not found'}`);
+      }
+
+      if (!patient) {
+        console.log(`❌ Patient "${patientName}" not found in database`);
+        console.log(`🔍 Available patients in database:`);
+        const allPatients = await this.patientRepository.find();
+        allPatients.forEach(p => console.log(`  - ${p.firstName} ${p.lastName}`));
+        throw new NotFoundException(`Patient with name "${patientName}" not found. Available patients: ${allPatients.map(p => `${p.firstName} ${p.lastName}`).join(', ')}`);
+      }
+
+      console.log(`✅ Found patient: ${patient.firstName} ${patient.lastName} (ID: ${patient.id})`);
+    } catch (error) {
+      console.error('❌ Error in patient lookup:', error);
+      throw error;
+    }
 
     // Combine date and time into a single datetime
-    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
+    console.log(`📅 Creating appointment for date: ${appointmentDate}, time: ${appointmentTime}`);
+    
+    // Convert 12-hour format to 24-hour format
+    let formattedTime = appointmentTime;
+    if (appointmentTime.includes('PM') || appointmentTime.includes('AM')) {
+      const timeMatch = appointmentTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1]);
+        const minutes = timeMatch[2];
+        const period = timeMatch[3].toUpperCase();
+        
+        if (period === 'PM' && hours !== 12) {
+          hours += 12;
+        } else if (period === 'AM' && hours === 12) {
+          hours = 0;
+        }
+        
+        formattedTime = `${hours.toString().padStart(2, '0')}:${minutes}`;
+        console.log(`📅 Time conversion: ${appointmentTime} -> ${formattedTime}`);
+      }
+    }
+    
+    const appointmentDateTime = new Date(`${appointmentDate}T${formattedTime}`);
+    console.log(`📅 Combined datetime: ${appointmentDateTime}`);
+    
+    // Validate that the datetime is valid
+    if (isNaN(appointmentDateTime.getTime())) {
+      throw new Error(`Invalid date/time combination: ${appointmentDate} ${appointmentTime}`);
+    }
 
     // Check for scheduling conflicts
+    console.log(`🔍 Checking for scheduling conflicts with doctor ID: ${doctorId}`);
     const conflictingAppointment = await this.appointmentRepository.findOne({
       where: {
         doctorId,
@@ -30,23 +127,50 @@ export class AppointmentsService {
     });
 
     if (conflictingAppointment) {
+      console.log(`❌ Scheduling conflict found`);
       throw new ConflictException('This time slot is already booked');
     }
 
-    // Create new appointment
-    const appointment = this.appointmentRepository.create({
-      patientId: createAppointmentDto.patientId,
-      doctorId: createAppointmentDto.doctorId,
-      appointmentDateTime,
-      type: createAppointmentDto.type,
-      status: AppointmentStatus.SCHEDULED,
-      reason: createAppointmentDto.reason,
-      notes: createAppointmentDto.notes,
-      duration: parseInt(createAppointmentDto.duration) || 30,
-      cost: createAppointmentDto.cost ? parseFloat(createAppointmentDto.cost) : null,
-    });
+    console.log(`✅ No scheduling conflicts found`);
 
-    return await this.appointmentRepository.save(appointment);
+    // Create new appointment
+    try {
+      console.log(`📝 Creating appointment with data:`, {
+        patientId: patient.id,
+        doctorId: createAppointmentDto.doctorId,
+        appointmentDateTime,
+        type: createAppointmentDto.type,
+        status: AppointmentStatus.SCHEDULED,
+        reason: createAppointmentDto.reason,
+        notes: createAppointmentDto.notes,
+        duration: parseInt(createAppointmentDto.duration) || 30,
+        cost: createAppointmentDto.cost ? parseFloat(createAppointmentDto.cost) : null,
+      });
+
+      const appointment = this.appointmentRepository.create({
+        patientId: patient.id,
+        doctorId: createAppointmentDto.doctorId,
+        appointmentDateTime,
+        type: createAppointmentDto.type,
+        status: AppointmentStatus.SCHEDULED,
+        reason: createAppointmentDto.reason,
+        notes: createAppointmentDto.notes,
+        duration: parseInt(createAppointmentDto.duration) || 30,
+        cost: createAppointmentDto.cost ? parseFloat(createAppointmentDto.cost) : null,
+      });
+
+      const savedAppointment = await this.appointmentRepository.save(appointment);
+      console.log(`✅ Appointment created successfully for patient: ${patient.firstName} ${patient.lastName}`);
+      return savedAppointment;
+    } catch (error) {
+      console.error('❌ Error creating appointment:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        code: error.code
+      });
+      throw new Error(`Failed to create appointment: ${error.message}`);
+    }
   }
 
   async findAll(queryDto: QueryAppointmentDto) {

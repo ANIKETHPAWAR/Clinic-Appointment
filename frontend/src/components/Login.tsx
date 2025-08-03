@@ -15,14 +15,20 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setLoading(true);
     
     try {
+      console.log('Attempting login with:', { username, password });
       const response = await apiService.login({ username, password });
+      console.log('Login response:', response);
+      
       if (response.data?.token) {
         localStorage.setItem('token', response.data.token);
         onLogin(response.data.token);
+      } else if (response.error) {
+        alert(`Login failed: ${response.error}`);
       } else {
         alert('Login failed. Please check your credentials.');
       }
     } catch (error) {
+      console.error('Login error:', error);
       alert('Login failed. Please try again.');
     } finally {
       setLoading(false);

@@ -49,6 +49,7 @@ const DoctorManagement = () => {
     if (!newDoctor.firstName || !newDoctor.lastName || !newDoctor.specialization || !newDoctor.location) return
 
     try {
+      console.log('👨‍⚕️ Creating doctor with data:', newDoctor);
       const response = await apiService.createDoctor(newDoctor)
       if (response.error) {
         alert(response.error)
@@ -119,6 +120,24 @@ const DoctorManagement = () => {
     }
   }
 
+  const toggleDoctorActive = async (id: number) => {
+    try {
+      const response = await apiService.toggleDoctorActive(id)
+      if (response.error) {
+        alert(response.error)
+        return
+      }
+      
+      if (response.data) {
+        setDoctors(doctors.map(doctor => 
+          doctor.id === id ? { ...doctor, isActive: !doctor.isActive } : doctor
+        ))
+      }
+    } catch (error) {
+      alert('Failed to toggle doctor status')
+    }
+  }
+
   const editDoctor = (doctor: Doctor) => {
     setEditingDoctor(doctor)
     setNewDoctor({
@@ -148,8 +167,20 @@ const DoctorManagement = () => {
   }
 
   const specializations = [
-    'Cardiology', 'Dermatology', 'Pediatrics', 'Orthopedics', 'Neurology',
-    'Oncology', 'Psychiatry', 'General Medicine', 'Emergency Medicine', 'Surgery'
+    { label: 'Cardiology', value: 'cardiology' },
+    { label: 'Dermatology', value: 'dermatology' },
+    { label: 'Endocrinology', value: 'endocrinology' },
+    { label: 'Gastroenterology', value: 'gastroenterology' },
+    { label: 'General Medicine', value: 'general_medicine' },
+    { label: 'Gynecology', value: 'gynecology' },
+    { label: 'Neurology', value: 'neurology' },
+    { label: 'Oncology', value: 'oncology' },
+    { label: 'Orthopedics', value: 'orthopedics' },
+    { label: 'Pediatrics', value: 'pediatrics' },
+    { label: 'Psychiatry', value: 'psychiatry' },
+    { label: 'Radiology', value: 'radiology' },
+    { label: 'Surgery', value: 'surgery' },
+    { label: 'Urology', value: 'urology' }
   ]
 
   return (
@@ -217,7 +248,7 @@ const DoctorManagement = () => {
               >
                 <option value="">Select specialization</option>
                 {specializations.map(spec => (
-                  <option key={spec} value={spec}>{spec}</option>
+                  <option key={spec.value} value={spec.value}>{spec.label}</option>
                 ))}
               </select>
             </div>
@@ -336,6 +367,17 @@ const DoctorManagement = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => toggleDoctorActive(doctor.id)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full ${
+                        doctor.isActive 
+                          ? 'bg-red-100 text-red-800 hover:bg-red-200' 
+                          : 'bg-green-100 text-green-800 hover:bg-green-200'
+                      }`}
+                      title={doctor.isActive ? 'Set as Inactive' : 'Set as Active'}
+                    >
+                      {doctor.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
                     <button
                       onClick={() => editDoctor(doctor)}
                       className="text-blue-600 hover:text-blue-900"

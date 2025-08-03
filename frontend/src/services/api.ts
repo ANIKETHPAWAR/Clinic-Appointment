@@ -24,6 +24,15 @@ class ApiService {
         headers.Authorization = `Bearer ${token}`;
       }
 
+      console.log('🌐 Making API request:', {
+        url: `${API_BASE_URL}${endpoint}`,
+        method: options.method || 'GET',
+        headers,
+        hasToken: !!token,
+        token: token ? token.substring(0, 20) + '...' : 'none',
+        body: options.body ? JSON.parse(options.body) : undefined
+      });
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
         headers,
@@ -31,7 +40,14 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        console.error('❌ API Error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          url: `${API_BASE_URL}${endpoint}`,
+          headers: headers
+        });
+        throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`);
       }
 
       const responseData = await response.json();
@@ -57,6 +73,8 @@ class ApiService {
         return { data: responseData.patient };
       } else if (responseData.message && responseData.appointment) {
         return { data: responseData.appointment };
+      } else if (responseData.message && responseData.token) {
+        return { data: responseData };
       } else {
         return { data: responseData };
       }
@@ -114,8 +132,9 @@ class ApiService {
   async createAppointment(appointmentData: {
     patientName: string;
     doctorId: number;
-    date: string;
-    time: string;
+    appointmentDate: string;
+    appointmentTime: string;
+    type: string;
     notes?: string;
   }) {
     return this.request<any>('/appointments', {
@@ -140,6 +159,10 @@ class ApiService {
   // Doctors
   async getDoctors() {
     return this.request<any[]>('/doctors');
+  }
+
+  async getAvailableDoctors() {
+    return this.request<any[]>('/doctors/available');
   }
 
   async createDoctor(doctorData: {
@@ -168,6 +191,12 @@ class ApiService {
   async deleteDoctor(id: number) {
     return this.request<any>(`/doctors/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  async toggleDoctorActive(id: number) {
+    return this.request<any>(`/doctors/${id}/toggle-active`, {
+      method: 'PATCH',
     });
   }
 
