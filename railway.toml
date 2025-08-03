@@ -6,6 +6,7 @@ healthcheckPath = "/api"
 healthcheckTimeout = 120
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 5
+startCommand = "npm run railway:start"
 
 [[services]]
 name = "clinicms-backend" 

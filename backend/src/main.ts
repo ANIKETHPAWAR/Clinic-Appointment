@@ -32,23 +32,36 @@ async function bootstrap() {
     }),
   );
 
-
-
   // Global prefix for all routes
   app.setGlobalPrefix('api');
+
+  // Add a simple health check endpoint
+  app.getHttpAdapter().get('/api', (req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      message: 'Front Desk System API is running',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
 
   // Get port from environment or use default
   const port = process.env.PORT || 3001;
 
-  // Seed default data
-  const seedService = app.get(SeedService);
-  await seedService.seed();
-
-  // Start the application
-  await app.listen(port);
+  // Start the application first
+  await app.listen(port, '0.0.0.0');
   
   console.log(`🚀 Front Desk System API is running on: http://localhost:${port}`);
   console.log(`📚 API Documentation available at: http://localhost:${port}/api`);
+
+  // Try to seed data, but don't fail if it doesn't work
+  try {
+    const seedService = app.get(SeedService);
+    await seedService.seed();
+    console.log('✅ Database seeding completed successfully');
+  } catch (error) {
+    console.error('⚠️ Database seeding failed, but application is still running:', error.message);
+  }
 }
 
 // Start the application
