@@ -8,6 +8,7 @@ async function bootstrap() {
     console.log('🚀 Starting Front Desk System API...');
     console.log('📋 Environment:', process.env.NODE_ENV || 'development');
     console.log('🔌 Port:', process.env.PORT || 3001);
+    console.log('🗄️ Database:', process.env.DB_DATABASE || 'msclinic');
     
     // Create the NestJS application instance
     const app = await NestFactory.create(AppModule);

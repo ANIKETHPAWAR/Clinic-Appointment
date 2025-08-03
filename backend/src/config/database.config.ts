@@ -26,30 +26,18 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
       keepConnectionAlive: true,
     };
   } else {
-    // Development: Use local MySQL or fallback to SQLite
-    try {
-      // Try to use local MySQL first
-      return {
-        type: 'mysql',
-        host: process.env.DB_HOST || 'localhost',
-        port: parseInt(process.env.DB_PORT) || 3306,
-        username: process.env.DB_USERNAME || 'root',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_DATABASE || 'clinicms',
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        synchronize: true,
-        logging: true,
-      };
-    } catch (error) {
-      // Fallback to SQLite if MySQL is not available
-      console.log('⚠️ MySQL not available, using SQLite fallback');
-      return {
-        type: 'sqlite',
-        database: 'database.sqlite',
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        synchronize: true,
-        logging: true,
-      };
-    }
+    // Development: Use local MySQL Workbench
+    console.log('🏠 Using local MySQL Workbench for development');
+    return {
+      type: 'mysql',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT) || 3306,
+      username: process.env.DB_USERNAME || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_DATABASE || 'msclinic',
+      entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+      synchronize: true,
+      logging: true,
+    };
   }
 }; 

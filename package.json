@@ -5,7 +5,8 @@
   "scripts": {
     "build": "cd backend && npm run build",
     "start": "cd backend && npm start",
-    "dev": "cd backend && npm run start:dev"
+    "dev": "cd backend && npm run start:dev",
+    "frontend": "cd frontend && npm run dev"
   },
   "workspaces": [
     "backend",
