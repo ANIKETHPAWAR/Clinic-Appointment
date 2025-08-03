@@ -3,7 +3,10 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 export const getDatabaseConfig = (): TypeOrmModuleOptions => {
   const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT === 'production';
   
-  if (isProduction) {
+  // Check if Railway MySQL variables are available (indicates Railway environment)
+  const hasRailwayVars = process.env.MYSQLHOST || process.env.RAILWAY_ENVIRONMENT;
+  
+  if (isProduction || hasRailwayVars) {
     // Production: Use Railway MySQL database
     return {
       type: 'mysql',
